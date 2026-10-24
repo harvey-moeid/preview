@@ -1,0 +1,73 @@
+name: Validate preview in isolated browser
+run-name: "byga-validate:${{ inputs.job_id }}:${{ inputs.generation }}"
+on:
+  workflow_dispatch:
+    inputs:
+      job_id: { required: true, type: string }
+      generation: { required: true, type: string }
+permissions: {}
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    environment: trusted-publisher
+    permissions: { contents: read }
+    outputs:
+      url: ${{ steps.plan.outputs.url }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: { ref: "${{ github.sha }}", persist-credentials: false }
+      - id: plan
+        env:
+          JOB_ID: ${{ inputs.job_id }}
+          GENERATION: ${{ inputs.generation }}
+          CONTROL_ORIGIN: ${{ vars.CONTROL_ORIGIN }}
+          PUBLISH_CALLBACK_SECRET: ${{ secrets.PUBLISH_CALLBACK_SECRET }}
+        run: python3 scripts/validation_plan.py
+  smoke:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions: { contents: read }
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: { ref: "${{ github.sha }}", persist-credentials: false }
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: { node-version: "24" }
+      - run: corepack enable && corepack prepare pnpm@10.28.2 --activate
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Secretless browser smoke
+        env:
+          {
+            PREVIEW_URL: "${{ needs.plan.outputs.url }}",
+            REPORT_DIR: artifacts/validation,
+          }
+        run: pnpm exec tsx scripts/smoke.ts
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: validation-${{ inputs.job_id }}-${{ inputs.generation }}
+          path: artifacts/validation/
+          retention-days: 1
+          if-no-files-found: error
+  report:
+    needs: smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    environment: trusted-publisher
+    permissions: { contents: read, actions: read }
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: { ref: "${{ github.sha }}", persist-credentials: false }
+      - name: Validate passive evidence and send signed outcome
+        env:
+          JOB_ID: ${{ inputs.job_id }}
+          GENERATION: ${{ inputs.generation }}
+          GH_TOKEN: ${{ github.token }}
+          CONTROL_ORIGIN: ${{ vars.CONTROL_ORIGIN }}
+          CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+          PREVIEW_R2_BUCKET: ${{ vars.PREVIEW_R2_BUCKET }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          CF_R2_PUBLISH_TOKEN: ${{ secrets.CF_R2_PUBLISH_TOKEN }}
+          PUBLISH_CALLBACK_SECRET: ${{ secrets.PUBLISH_CALLBACK_SECRET }}
+        run: python3 scripts/publish_validation.py

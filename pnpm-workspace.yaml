@@ -1,0 +1,9 @@
+packages:
+  - apps/*
+  - packages/*
+  - fixtures/vite
+  - fixtures/monorepo/apps/*
+onlyBuiltDependencies:
+  - esbuild
+  - workerd
+  - sharp

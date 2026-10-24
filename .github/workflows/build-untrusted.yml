@@ -1,0 +1,43 @@
+name: Build untrusted static source
+run-name: "byga-build:${{ inputs.job_id }}:0"
+on:
+  workflow_dispatch:
+    inputs:
+      job_id: { required: true, type: string }
+      owner: { required: true, type: string }
+      repo: { required: true, type: string }
+      sha: { required: true, type: string }
+      config_hash: { required: true, type: string }
+      config: { required: true, type: string }
+permissions: {}
+concurrency:
+  group: byga-secretless-build
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions: { contents: read }
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: { ref: "${{ github.sha }}", persist-credentials: false }
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: { node-version: "${{ fromJSON(inputs.config).node }}" }
+      - name: Pin optional package manager tools before target execution
+        run: corepack enable && corepack prepare pnpm@10.28.2 yarn@4.6.0 --activate
+      - name: Build public immutable source without credentials
+        env:
+          JOB_ID: ${{ inputs.job_id }}
+          SOURCE_OWNER: ${{ inputs.owner }}
+          SOURCE_REPO: ${{ inputs.repo }}
+          SOURCE_SHA: ${{ inputs.sha }}
+          CONFIG_HASH: ${{ inputs.config_hash }}
+          BUILD_CONFIG: ${{ inputs.config }}
+        run: python3 scripts/build_source.py
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: static-${{ inputs.job_id }}
+          path: ${{ runner.temp }}/artifact.tar
+          retention-days: 1
+          if-no-files-found: error
+          compression-level: 0

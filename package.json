@@ -1,0 +1,45 @@
+{
+  "name": "byga-universal-preview",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.28.2",
+  "scripts": {
+    "dev": "tsx scripts/dev.ts",
+    "build": "vite build --config apps/dashboard/vite.config.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run && python3 -m unittest discover -s tests -p 'test_*.py'",
+    "test:e2e": "playwright test",
+    "check:workflows": "node scripts/check_workflows.mjs",
+    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm check:workflows && pnpm build",
+    "password:hash": "node scripts/password.mjs",
+    "types:workers": "wrangler types --config apps/control-worker/wrangler.jsonc apps/control-worker/worker-configuration.d.ts --env-interface ControlBindings --include-runtime false --strict-vars false && wrangler types --config apps/preview-worker/wrangler.jsonc apps/preview-worker/worker-configuration.d.ts --env-interface PreviewBindings --include-runtime false --strict-vars false",
+    "format": "prettier --write apps packages scripts tests *.json *.ts *.js .github/workflows"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "zod": "^3.25.76",
+    "lucide-react": "^0.468.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "latest",
+    "@eslint/js": "^9.39.0",
+    "@playwright/test": "^1.58.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^5.1.0",
+    "eslint": "^9.39.0",
+    "miniflare": "^4.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.50.0",
+    "vite": "^7.3.0",
+    "vitest": "^3.2.4",
+    "wrangler": "^4.0.0",
+    "yaml": "^2.8.0",
+    "esbuild": "^0.25.0",
+    "prettier": "^3.6.2"
+  }
+}

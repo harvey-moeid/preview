@@ -1,0 +1,1 @@
+{"name":"@byga/fixture-monorepo-web","private":true,"type":"module","scripts":{"build":"vite build --base=./"},"devDependencies":{"vite":"^7.3.0"}}
