@@ -1,0 +1,21 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "byga-preview",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-24",
+  "compatibility_flags": ["nodejs_compat"],
+  "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "byga-previews" }],
+  "services": [
+    {
+      "binding": "ACCESS",
+      "service": "byga-control",
+      "entrypoint": "PreviewAccess",
+    },
+  ],
+  "vars": {
+    "PREVIEW_BASE_DOMAIN": "",
+    "PREVIEW_ORIGIN": "https://byga-preview.example.workers.dev",
+    "APP_ORIGIN": "https://app.example.com",
+  },
+  "observability": { "enabled": true, "head_sampling_rate": 0.1 },
+}

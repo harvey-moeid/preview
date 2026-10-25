@@ -1,0 +1,29 @@
+name: Publish validated static data
+run-name: "byga-publish:${{ inputs.job_id }}:0"
+on:
+  workflow_dispatch:
+    inputs:
+      job_id: { required: true, type: string }
+      generation: { required: true, type: string }
+permissions: {}
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: trusted-publisher
+    permissions: { contents: read, actions: read }
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: { ref: "${{ github.sha }}", persist-credentials: false }
+      - name: Verify bound run, scan passive artifact, publish and sign callback
+        env:
+          JOB_ID: ${{ inputs.job_id }}
+          GENERATION: ${{ inputs.generation }}
+          GH_TOKEN: ${{ github.token }}
+          CONTROL_ORIGIN: ${{ vars.CONTROL_ORIGIN }}
+          CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+          PREVIEW_R2_BUCKET: ${{ vars.PREVIEW_R2_BUCKET }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          CF_R2_PUBLISH_TOKEN: ${{ secrets.CF_R2_PUBLISH_TOKEN }}
+          PUBLISH_CALLBACK_SECRET: ${{ secrets.PUBLISH_CALLBACK_SECRET }}
+        run: python3 scripts/publish.py

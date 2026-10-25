@@ -1,0 +1,30 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "byga-control",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-24",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "../dashboard/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"],
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "QUEUE", "class_name": "Coordinator" }],
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Coordinator"] }],
+  "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "byga-previews" }],
+  "vars": {
+    "APP_ORIGIN": "https://app.example.com",
+    "PREVIEW_ORIGIN": "https://byga-preview.example.workers.dev",
+    "PREVIEW_BASE_DOMAIN": "",
+    "GITHUB_OWNER": "YOUR_OWNER",
+    "GITHUB_ORCHESTRATOR_REPO": "YOUR_REPO",
+    "GITHUB_TRUSTED_REF": "",
+    "GITHUB_WORKFLOW_REF": "",
+    "BUILDS_ENABLED": "false",
+    "AUTH_CPU_VERIFIED": "false",
+  },
+  "observability": { "enabled": true, "head_sampling_rate": 0.1 },
+}
