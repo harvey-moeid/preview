@@ -2,6 +2,8 @@
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "byga-preview",
   "main": "src/index.ts",
+  "account_id": "07086b4d368d0a37ebcbbf186e51eecf",
+  "workers_dev": true,
   "compatibility_date": "2026-10-24",
   "compatibility_flags": ["nodejs_compat"],
   "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "byga-previews" }],
@@ -14,8 +16,8 @@
   ],
   "vars": {
     "PREVIEW_BASE_DOMAIN": "",
-    "PREVIEW_ORIGIN": "https://byga-preview.example.workers.dev",
-    "APP_ORIGIN": "https://app.example.com",
+    "PREVIEW_ORIGIN": "https://byga-preview.harveymoeid.workers.dev",
+    "APP_ORIGIN": "https://byga-control.harveymoeid.workers.dev",
   },
   "observability": { "enabled": true, "head_sampling_rate": 0.1 },
 }
